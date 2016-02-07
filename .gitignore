@@ -1,0 +1,18 @@
+# Unity generated
+Library/
+Temp/
+Assets/Video
+Assets/Audio
+Data/
+obj/
+
+# Files generated externally
+*(Conflicted)*
+/*.booproj
+/*.csproj
+/*.pidb
+/*.sln
+/*.suo
+/*.user
+/*.userprefs
+/*.unityproj
