@@ -50,21 +50,21 @@ public class CombatAvatar : Actor
                         body.localRotation = Quaternion.LookRotation( direction );
                         StartCoroutine( Punch_Coroutine( direction ) );
                     }
-                    else if ( chargeTimer < chargeTimeThreshold )
+                    else if ( !chargeEffect && chargeTimeThreshold > chargeTimer )
                         chargeTimer += Time.deltaTime;
-                    else if ( chargeTimer >= chargeTimeThreshold && !chargeEffect )
+                    else if ( !chargeEffect && chargeTimer >= chargeTimeThreshold && !chargeEffect )
                     {
+                        chargeTimer = 0;
                         chargeEffect = true;
                         Go.to( body.GetChild( 0 ).GetComponent<MeshRenderer>() , 0.2f , new GoTweenConfig().materialColor( Color.red ).setIterations( -1 , GoLoopType.PingPong ) );
                     }
                 }
                 else if ( Input.GetMouseButtonUp( 1 ) )
                 {
-                    chargeEffect = false;
                     Go.killAllTweensWithTarget( body.GetChild( 0 ).GetComponent<MeshRenderer>() );
 
                     //Charge attack
-                    if ( chargeTimer >= chargeTimeThreshold )
+                    if ( chargeEffect )
                     {
                         body.GetChild( 0 ).GetComponent<MeshRenderer>().material.color = Color.red;
                         moveDirection = direction;
@@ -93,7 +93,7 @@ public class CombatAvatar : Actor
                     else
                         body.GetChild( 0 ).GetComponent<MeshRenderer>().material.color = new Color( 62f / 255f , 1f , 0 );
 
-                    chargeTimer = 0;
+                    chargeEffect = false;
                 }
 
                 if ( leftDoubleClick )
@@ -121,8 +121,8 @@ public class CombatAvatar : Actor
                             Go.killAllTweensWithTarget( body );
                             leftClickTime = 0;
                             leftDoubleClick = false;
-                            StartCoroutine( Blink_Coroutine( direction , hit.point , chargeTimer > chargeTimeThreshold ) );
-                            chargeTimer = 0;
+                            StartCoroutine( Blink_Coroutine( direction , hit.point , chargeEffect ) );
+                            chargeEffect = false;
                         }
 
                         leftDoubleClick = true;
@@ -342,7 +342,7 @@ public class CombatAvatar : Actor
                 stomp.transform.position = transform.position + ( Vector3.down * 0.25f );
 
                 GoTween effectGrow = new GoTween( stomp.transform , 0.2f , new GoTweenConfig().scale( new Vector3( 3 , 0.5f , 3 ) ).setEaseType( GoEaseType.BackOut ) );
-                GoTween effectShrink = new GoTween( stomp.transform , 1f , new GoTweenConfig().scale( new Vector3( 3 , 0 , 3 ) ).setEaseType( GoEaseType.ExpoIn ) );
+                GoTween effectShrink = new GoTween( stomp.transform , 1f , new GoTweenConfig().scale( Vector3.zero ).setEaseType( GoEaseType.ExpoIn ) );
                 chain.append( effectGrow );
                 chain.append( effectShrink );
                 chain.play();
@@ -356,8 +356,8 @@ public class CombatAvatar : Actor
         Destroy( stomp );
 
         yield return new WaitForSeconds( chargeStompRecoverTime );
-        _chargeStomp = false;
         Go.to( body.GetChild( 0 ).GetComponent<MeshRenderer>() , 0.2f , new GoTweenConfig().materialColor( new Color( 62f / 255f , 1f , 0 ) ) );
+        _chargeStomp = false;
     }
 
     private IEnumerator ChargePush_Coroutine ( Vector3 direction )
